@@ -1,22 +1,22 @@
 <template>
   <div id="app">
-    <Calc/>
+    <Calc />
   </div>
 </template>
 
 <script>
-import Calc from './components/Calc.vue'
+import Calc from "./components/Calc.vue";
 
 export default {
-  name: 'App',
+  name: "App",
   components: {
-    Calc
+    Calc,
   },
-  data: ()=>({
-    message: 'Наша Реклама',
-    myArr:[1,2,3,4,5]
-  })
-}
+  data: () => ({
+    message: "Наша Реклама",
+    myArr: [1, 2, 3, 4, 5],
+  }),
+};
 </script>
 
 <style lang="scss">
