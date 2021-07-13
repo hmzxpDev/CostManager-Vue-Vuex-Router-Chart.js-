@@ -2,16 +2,9 @@
   <div id="app">
     <div class="leftSide">
       <span class="Headding">My personal cost</span>
-      <addingCosts @formSend="pushEL" />
-      <paymentList :list="data" />
-      <paginate
-        :page-count="2"
-        :click-handler="test"
-        :prev-text="'Назад'"
-        :next-text="'Вперед'"
-        :container-class="'className'"
-      >
-      </paginate>
+      <addingCosts />
+      <paymentList />
+      <paginate />
     </div>
   </div>
 </template>
@@ -19,7 +12,8 @@
 <script>
 import paymentList from "./components/paymentList.vue";
 import addingCosts from "./components/addingCosts.vue";
-import paginate from "vuejs-paginate";
+import paginate from "./components/paginate.vue";
+import { mapActions } from "vuex";
 
 export default {
   name: "App",
@@ -28,34 +22,20 @@ export default {
     addingCosts,
     paginate,
   },
-  data: () => ({
-    data: 0,
-  }),
   methods: {
-    // залил на свой репозиторий, что бы не засорять данными код
-    fetchData() {
-      fetch("https://raw.githubusercontent.com/hmzxpDev/API/main/item.json")
-        .then((res) => res.json())
-        .then((item) => {
-          this.data = item;
-        });
-    },
-    pushEL(el) {
-      // полученное значение дополняем индексом. что бы лишний раз не передавать data в дочку
-      el.index = this.data.length + 1;
-      // добавляем в дату
-      this.data.push(el);
-    },
-    test() {
-      console.log(123);
-    },
+    // метод загружающий данные с гита в store
+    ...mapActions(["fetchData"]),
   },
-  created() {
-    // фетчим дату
+  async created() {
     this.fetchData();
   },
 };
+
+// ДОДЕЛАТЬ ИЗ СТОРА ОТРИСОВКУ ВСЕХ СЕЛЕКТОВ ЗАВТРА
 </script>
+
+
+
 
 <style lang="css">
 /* логичнее всего сделать обнуление стилей в родителе */

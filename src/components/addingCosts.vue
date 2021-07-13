@@ -11,11 +11,14 @@
     </button>
     <div v-show="form" class="form">
       <input type="date" placeholder="Date" v-model="date" />
-      <input type="text" placeholder="Category" v-model="category" />
+      <select size="1" v-model="category">
+        <option value="" default disabled selected>Select your category</option>
+        <option v-for="item in getCategory" :key="item">{{ item }}</option>
+      </select>
       <input type="number" min="0" placeholder="Value" v-model="value" />
       <div buttonForm>
-        <button @click="sendForm">ADD +</button>
-        <button @click="closeButton">Close</button>
+        <button @click="validation">ADD +</button>
+        <button @click="pageRendering">Close</button>
       </div>
 
       <div class="error" v-if="errorBefor">{{ error }}</div>
@@ -24,6 +27,8 @@
 </template>
 
 <script>
+import { mapGetters, mapMutations } from "vuex";
+
 export default {
   name: "addingCosts",
   data: () => ({
@@ -36,27 +41,39 @@ export default {
     errorBefor: false,
   }),
   methods: {
-    sendForm() {
-      // простая валидация на пустые формы
+    ...mapMutations(["createCost"]),
+    // валидация формы
+    validation() {
       if (this.category == "" || this.value == "") {
         this.errorBefor = true;
       } else {
-        // передаем данные в родителя
-        this.$emit("formSend", {
-          date: this.date,
-          category: this.category,
-          value: this.value,
-        });
-        // закрываем формы, открываем кнопку открытия форм
-        this.closeButton();
-        // обнуляем  данные форм
-        this.category = "";
-        this.value = "";
-        // убираем ошибку
-        this.errorBefor = false;
+        //отправляем данные формы в store
+        this.sendToStore();
+        //очищаем инпуты, меняем кнопки
+        this.pageRendering();
       }
     },
-    // делаем дату если пользователь решил не выбирать ничего
+    sendToStore() {
+      // передаем данные в store
+      this.createCost({
+        index: this.getData.length + 1,
+        date: this.date,
+        category: this.category,
+        value: this.value,
+      });
+    },
+    // метод меняет состояние отправки форм до начального
+    pageRendering() {
+      // закрываем формы, открываем кнопку открытия форм
+      this.form = !this.form;
+      this.addNewCost = !this.addNewCost;
+      // обнуляем  данные форм
+      this.category = "";
+      this.value = "";
+      // убираем ошибку
+      this.errorBefor = false;
+    },
+    // метод добавляет текущую дату в значение инпута
     dateComp() {
       let date = new Date();
       let d = ("0" + date.getDate()).slice(-2);
@@ -64,20 +81,28 @@ export default {
       let y = date.getFullYear();
       this.date = `${y}-${m}-${d}`;
     },
-    closeButton() {
-      // закрываем формы, открываем кнопку открытия форм
-      this.form = !this.form;
-      this.addNewCost = !this.addNewCost;
+  },
+  computed: {
+    ...mapGetters(["dataGetter", "categoryGetter"]),
+    // для добавления актуального индекса
+    getData() {
+      return this.dataGetter;
+    },
+    getCategory() {
+      return this.categoryGetter;
     },
   },
-  // для того что бы всегда иметь актуальную дату
   created() {
+    // для того что бы всегда иметь актуальную дату
     this.dateComp();
   },
 };
 </script>
 
 <style lang="scss" scoped>
+option[default] {
+  display: none;
+}
 button {
   margin-top: 20px;
   margin-right: 30px;
@@ -91,7 +116,8 @@ button {
 .form {
   display: flex;
   flex-direction: column;
-  input {
+  input,
+  select {
     margin-top: 10px;
     height: 30px;
     width: 200px;

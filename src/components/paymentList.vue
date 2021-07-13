@@ -6,7 +6,7 @@
       <div class="category">Category</div>
       <div class="value">Value</div>
     </div>
-    <div class="columnContent" v-for="item in list" :key="item.index">
+    <div class="columnContent" v-for="item in getData" :key="item.index">
       <div class="index">{{ item.index }}</div>
       <div class="date">{{ item.date }}</div>
       <div class="category">{{ item.category }}</div>
@@ -16,9 +16,16 @@
 </template>
 
 <script>
+import { mapGetters } from "vuex";
 export default {
   name: "paymentList",
-  props: ["list"],
+  computed: {
+    // получаем данные из store для отрисовки списка
+    ...mapGetters(["dataPaymentList"]),
+    getData() {
+      return this.dataPaymentList;
+    },
+  },
 };
 </script>
 
@@ -29,12 +36,12 @@ export default {
 .columnName {
   display: flex;
   font-weight: 900;
-  border-bottom: 1px solid #f3f3f3;
+  border-bottom: 1px solid #e2e2e2;
   height: 30px;
 }
 .columnContent {
   display: flex;
-  border-bottom: 1px solid #f3f3f3;
+  border-bottom: 1px solid #e2e2e2;
   div {
     height: 40px;
     display: flex;
