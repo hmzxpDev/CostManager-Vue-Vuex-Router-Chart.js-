@@ -14,8 +14,8 @@ export default new Vuex.Store({
     },
     mutations: {
         /**
- * метод который записывает полученные данные с гита в state
- */
+          * метод который записывает полученные данные с гита в state
+        */
         updateData(state, getData) {
             state.data = getData;
         },
@@ -40,7 +40,7 @@ export default new Vuex.Store({
         // количество обьектов в одной странице
         quantityInList: 5,
         // категории расходов
-        category: ['Food', 'Transport', 'Housting', 'Clothing', 'Healt'],
+        category: ['Food', 'Transport', 'Housting', 'Clothing', 'Health'],
     },
     getters: {
         // отрисовывает в зависимости от нажатого листа

@@ -2,14 +2,15 @@
 import Vue from 'vue'
 // директория наших компонентов
 import App from './App.vue'
-import Paginate from 'vuejs-paginate'
-import store from './store'
-
+// стор хранения данных
+import store from './store/store.js'
+// роуты
+import router from './router/router.js'
+import('animate.css');
 Vue.config.productionTip = false
 
 new Vue({
   render: h => h(App),
-  store
+  store,
+  router
 }).$mount('#app')
-
-Vue.component('paginate', Paginate);

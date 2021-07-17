@@ -1,11 +1,13 @@
 <template>
   <div class="paymentList">
+    <!-- название колонок -->
     <div class="columnName">
       <div class="index">#</div>
       <div class="date">Date</div>
       <div class="category">Category</div>
       <div class="value">Value</div>
     </div>
+    <!-- контент -->
     <div class="columnContent" v-for="item in getData" :key="item.index">
       <div class="index">{{ item.index }}</div>
       <div class="date">{{ item.date }}</div>

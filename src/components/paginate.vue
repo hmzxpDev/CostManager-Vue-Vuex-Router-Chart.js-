@@ -18,11 +18,12 @@
 
 <script>
 import { mapMutations, mapGetters } from "vuex";
+
 export default {
   name: "paginate",
   data() {
     return {
-      // нужно для реактивности пагинации и работы кнопок
+      // нужно для реактивности пагинации и работы кнопок + реактивности
       list: 1,
     };
   },
@@ -32,37 +33,63 @@ export default {
     chooseList(value) {
       this.list = value;
       this.paginateComp(value);
+      this.UrlUpdate();
     },
     // предедущая страница
     prevList() {
       if (this.list > 1) {
         this.paginateComp(--this.list);
+        // меняем url значение
+        this.UrlUpdate();
       }
     },
     // следующая страница
     nextList() {
       if (this.list <= this.getFullArr - 1) {
         this.paginateComp(++this.list);
+        // меняем url значение
+        this.UrlUpdate();
       }
+    },
+    // метод при нажатии на кнопки пагинации - добавляет динамические параметры в url
+    UrlUpdate() {
+      this.$router
+        .push({
+          path: "/dashboard/paginate/",
+          query: { id: `${this.list}` },
+        })
+        .catch(() => {}); // для выключения NavigationDublicate
+    },
+    // метод, который считывает динамические данные из url и выводит нужную страницу пагинации
+    urlParsing() {
+      // если данных нет - тогда переводит на 1 страницу
+      let page = this.$route.query.id ?? 1;
+      // для передачи номера актуальной страницы в store
+      this.paginateComp(page);
+      // для обновления цифры на панеле
+      this.list = Number(page);
     },
   },
   computed: {
     ...mapGetters(["arrayPaginate", "compListNumber"]),
-    // количество листов пагинации, только для работы кнопки
+    // получаем актуальное количество страниц для пагинации
     getFullArr() {
       return this.compListNumber;
     },
-
-    // метод получения массива для отрисовки кнопок пагинации
+    // получаем массив кнопок из стора для отрисовки
     getPaginationList() {
+      // если активная страница меньше трех - показывает справа 4 кнопки
       if (this.list < 3) {
-        // если активная страница меньше трех - то просто отбражает первые 5 кнопок
         return this.arrayPaginate.slice(0, 5);
-        // если больше 3 - то покажет 6 ближайших кнопок
-      } else {
+      }
+      // если больше 3 - то показывает слева и справа по 3 элемента массива
+      else {
         return this.arrayPaginate.slice(this.list - 3, this.list + 2);
       }
     },
+  },
+  created() {
+    this.urlParsing();
   },
 };
 </script>

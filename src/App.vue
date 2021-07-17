@@ -1,37 +1,13 @@
 <template>
   <div id="app">
-    <div class="leftSide">
-      <span class="Headding">My personal cost</span>
-      <addingCosts />
-      <paymentList />
-      <paginate />
-    </div>
+    <router-view></router-view>
   </div>
 </template>
 
 <script>
-import paymentList from "./components/paymentList.vue";
-import addingCosts from "./components/addingCosts.vue";
-import paginate from "./components/paginate.vue";
-import { mapActions } from "vuex";
-
 export default {
   name: "App",
-  components: {
-    paymentList,
-    addingCosts,
-    paginate,
-  },
-  methods: {
-    // метод загружающий данные с гита в store
-    ...mapActions(["fetchData"]),
-  },
-  async created() {
-    this.fetchData();
-  },
 };
-
-// ДОДЕЛАТЬ ИЗ СТОРА ОТРИСОВКУ ВСЕХ СЕЛЕКТОВ ЗАВТРА
 </script>
 
 
@@ -39,7 +15,9 @@ export default {
 
 <style lang="css">
 /* логичнее всего сделать обнуление стилей в родителе */
-
+* {
+  text-decoration: none;
+}
 /* Указываем box sizing */
 *,
 *::before,

@@ -1,28 +1,54 @@
 <template>
-  <div>
-    <button
-      v-show="addNewCost"
-      @click="
-        form = !form;
-        addNewCost = !addNewCost;
-      "
-    >
-      ADD NEW COST +
-    </button>
-    <div v-show="form" class="form">
-      <input type="date" placeholder="Date" v-model="date" />
-      <select size="1" v-model="category">
-        <option value="" default disabled selected>Select your category</option>
-        <option v-for="item in getCategory" :key="item">{{ item }}</option>
-      </select>
-      <input type="number" min="0" placeholder="Value" v-model="value" />
-      <div buttonForm>
-        <button @click="validation">ADD +</button>
-        <button @click="pageRendering">Close</button>
-      </div>
-
-      <div class="error" v-if="errorBefor">{{ error }}</div>
-    </div>
+  <div class="AddCosts">
+    <!-- кнопка открывает добавление оплаты и меняет url-->
+    <router-link to="/dashboard/add/payment/">
+      <!-- трестирую анимацию -->
+      <transition
+        enter-active-class="animate__animated animate__bounceInLeft"
+        leave-active-class="animate__animated animate__bounceOutRight"
+        mode="out-in"
+        ><button
+          v-show="addNewCost"
+          @click="
+            form = !form;
+            addNewCost = !addNewCost;
+          "
+        >
+          ADD NEW COST +
+        </button>
+      </transition>
+      <transition
+        enter-active-class="animate__animated animate__bounceInLeft"
+        leave-active-class="animate__animated animate__bounceOutRight"
+        mode="out-in"
+      >
+        <!-- открывается после нажатия верхней кнопки -->
+        <div v-show="form" class="form">
+          <!-- время указывается автоматически сегодня -->
+          <input type="date" placeholder="Date" v-model="date" />
+          <!-- выбор категорий затрат -->
+          <select size="1" v-model="category">
+            <option value="" default disabled selected>
+              Select your category
+            </option>
+            <option v-for="item in getCategory" :key="item">{{ item }}</option>
+          </select>
+          <!-- потраченные средства -->
+          <input type="number" min="0" placeholder="Value" v-model="value" />
+          <!-- кнопки которые отправляют форму и закрывают ее -->
+          <div class="buttonForm">
+            <router-link to="/">
+              <button @click="validation">ADD +</button></router-link
+            >
+            <router-link to="/"
+              ><button @click="pageRendering">Close</button></router-link
+            >
+          </div>
+          <!-- ошибка, которая появляется при неправильном заполнения форм -->
+          <div class="error" v-if="errorBefor">{{ error }}</div>
+        </div>
+      </transition>
+    </router-link>
   </div>
 </template>
 
@@ -54,7 +80,7 @@ export default {
       }
     },
     sendToStore() {
-      // передаем данные в store
+      // передаем данные затраты в store
       this.createCost({
         index: this.getData.length + 1,
         date: this.date,
@@ -81,6 +107,17 @@ export default {
       let y = date.getFullYear();
       this.date = `${y}-${m}-${d}`;
     },
+    // метод открывает и закрывает форму в зависимости от наличия динамических данных в url
+    formState() {
+      if (this.$route.matched[0].path === "/dashboard/add/payment*") {
+        // открываем формы
+        this.form = true;
+        this.addNewCost = false;
+        // вставляет динамические значения из url в формы
+        this.category = this.$route.query.category ?? "Food"; // если данных нет - то автоматически food
+        this.value = this.$route.query.value ?? 100; // если данных нет - то автоматически 0
+      }
+    },
   },
   computed: {
     ...mapGetters(["dataGetter", "categoryGetter"]),
@@ -88,6 +125,7 @@ export default {
     getData() {
       return this.dataGetter;
     },
+    // получаем массив категрой затрат
     getCategory() {
       return this.categoryGetter;
     },
@@ -95,11 +133,35 @@ export default {
   created() {
     // для того что бы всегда иметь актуальную дату
     this.dateComp();
+    // открывает форму если в url есть динамические данные
+    this.formState();
+  },
+  updated() {
+    // во время обновления в форме данных - будет добавлять их в url
+    this.$router
+      .push({
+        path: "/dashboard/add/payment/",
+        query: { category: `${this.category}`, value: this.value },
+      })
+      .catch(() => {}); // для выключения NavigationDublicate
   },
 };
 </script>
 
 <style lang="scss" scoped>
+.AddCosts {
+  height: 165px;
+}
+.AddCosts a {
+  display: flex;
+}
+.animate__bounceInLeft {
+  animation-delay: 1s;
+}
+.animate__flipInX {
+  animation-delay: 1s;
+}
+
 option[default] {
   display: none;
 }
@@ -122,6 +184,9 @@ button {
     height: 30px;
     width: 200px;
     border: 1px solid rgb(194, 194, 194);
+  }
+  div {
+    display: flex;
   }
 }
 .error {
