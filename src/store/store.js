@@ -9,14 +9,14 @@ export default new Vuex.Store({
         async fetchData(context) {
             const res = await fetch("https://raw.githubusercontent.com/hmzxpDev/API/main/item.json")
             const getData = await res.json();
-            context.commit('updateData', getData);
+            context.commit('getData', getData);
         },
     },
     mutations: {
         /**
           * метод который записывает полученные данные с гита в state
         */
-        updateData(state, getData) {
+        getData(state, getData) {
             state.data = getData;
         },
         /**
@@ -26,10 +26,35 @@ export default new Vuex.Store({
             state.data.push(newCost)
         },
         /**
+         * метод находит по индексу обьект и удаляет его
+         */
+        deleteCost(state, index) {
+            for (var i = 0; i < state.data.length; i < i++) {
+                if (state.data[i].index === index) {
+                    state.data.splice(i, 1)
+                    break;
+                }
+            }
+        },
+        /**
          * метод записывает номер страницы в state
          */
         paginateComp(state, listNumber) {
             state.listNumber = listNumber;
+        },
+        /**
+         * метод меняет свойства у существующих данных
+         */
+        updateData(state, obj) {
+            for (var i = 0; i < state.data.length; i < i++) {
+                if (state.data[i].index === obj.index) {
+                    state.data[i].date = obj.date
+                    state.data[i].category = obj.category
+                    state.data[i].value = obj.value
+                    break;
+                }
+            }
+
         }
 
     },

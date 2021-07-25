@@ -97,6 +97,7 @@ export default {
 <style lang="scss" scoped>
 @import "~@fortawesome/fontawesome-free/css/all.min.css";
 .pagination {
+  width: 490px;
   margin-top: -1px;
   border: 1px solid #e2e2e2;
   height: 40px;
@@ -108,7 +109,7 @@ export default {
   color: rgb(0, 153, 255);
 }
 .buttonBox {
-  width: 250px;
+  width: 320px;
   display: flex;
   align-items: center;
   justify-content: space-between;

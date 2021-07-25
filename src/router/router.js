@@ -3,9 +3,6 @@ import Router from 'vue-router'
 
 Vue.use(Router)
 
-// две страницы
-import dashboard from '../views/dashboard.vue';
-import notFound from "../views/notFound.vue";
 
 
 export default new Router({
@@ -15,7 +12,7 @@ export default new Router({
         // основная страница
         {
             path: '/dashboard',
-            component: dashboard
+            component: () => import('../views/dashboard.vue')
             , name: 'dashboard',
         },
         // если напишуть без dashboard - перекинет на dashboard
@@ -26,17 +23,17 @@ export default new Router({
         // путь для пагинации
         {
             path: '/dashboard/paginate*',
-            component: dashboard,
+            component: () => import('../views/dashboard.vue')
         },
         // путь для добавления расхода
         {
             path: '/dashboard/add/payment*',
-            component: dashboard,
+            component: () => import('../views/dashboard.vue')
         },
         // все неверные url будут уходить в notFound
         {
             path: '*',
-            component: notFound
+            component: () => import('../views/notFound.vue')
         }
     ]
 })

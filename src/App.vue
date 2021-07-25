@@ -14,7 +14,17 @@ export default {
 
 
 <style lang="css">
+/* кнопка анимация */
+button {
+}
+
+button:active {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+}
+
 /* логичнее всего сделать обнуление стилей в родителе */
+
 * {
   text-decoration: none;
 }
@@ -83,6 +93,6 @@ select {
   flex-direction: column;
   margin-left: 20px;
   margin-top: 20px;
-  width: 450px;
+  width: 100%;
 }
 </style>
