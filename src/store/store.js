@@ -63,7 +63,7 @@ export default new Vuex.Store({
         // номер страницы
         listNumber: 1,
         // количество обьектов в одной странице
-        quantityInList: 5,
+        quantityInList: 10,
         // категории расходов
         category: ['Food', 'Transport', 'Housting', 'Clothing', 'Health'],
     },

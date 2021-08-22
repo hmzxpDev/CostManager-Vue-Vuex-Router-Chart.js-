@@ -2,20 +2,28 @@
   <div class="modal">
     <div class="modal-guts form">
       <span> Добавление нового расхода:</span>
-      <input type="date" placeholder="Date" v-model="date" />
+      <input class="inputDate" type="date" placeholder="Date" v-model="date" />
       <select size="1" v-model="category">
         <option value="" default disabled selected>Select your category</option>
         <option v-for="item in getCategory" :key="item">
           {{ item }}
         </option>
       </select>
-      <input type="number" min="0" placeholder="Value" v-model="value" />
+      <input
+        class="inputValue"
+        type="number"
+        min="0"
+        placeholder="Value"
+        v-model="value"
+      />
 
       <div class="error" v-if="errorBefor">{{ error }}</div>
     </div>
     <div class="buttonForm">
-      <button class="close-button" @click="validation">ADD +</button>
-      <button class="close-button" @click="pageRendering">Close</button>
+      <button class="close-button buttonADD" @click="validation">ADD +</button>
+      <button class="close-button buttonClose" @click="pageRendering">
+        Close
+      </button>
     </div>
   </div>
 </template>
@@ -57,6 +65,7 @@ export default {
     // метод меняет состояние отправки форм до начального
     pageRendering() {
       // обнуляем  данные форм
+      this.dateComp();
       this.category = "";
       this.value = "";
       // убираем ошибку
