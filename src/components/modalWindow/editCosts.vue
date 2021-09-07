@@ -1,160 +1,140 @@
 <template>
-  <div class="editBody">
-    <div class="editInputs">
-      <span>Редактирование расхода :</span>
-      Дата<input
-        type="date"
-        placeholder="Date"
-        v-model="date"
-        v-bind:class="{ erorInput: dateError }"
-      />
-      Категория<select
-        size="1"
-        v-model="category"
-        v-bind:class="{ erorInput: categoryError }"
+  <div class="modal d-flex flex-column pa-4">
+    <span class="font-weight-bold"> Edit cost:</span>
+    <v-form ref="form" v-model="valid" :lazy-validation="lazy">
+      <v-dialog
+        ref="dialog"
+        v-model="modal"
+        :return-value.sync="date"
+        persistent
+        width="290px"
       >
-        <option v-for="item in getCategory" :key="item">
-          {{ item }}
-        </option></select
-      >Значение<input
-        type="number"
-        min="0"
-        placeholder="Value"
+        <template v-slot:activator="{ on, attrs }">
+          <v-text-field
+            v-model="date"
+            label="Date"
+            readonly
+            v-bind="attrs"
+            v-on="on"
+          ></v-text-field>
+        </template>
+        <v-date-picker v-model="date" scrollable>
+          <v-spacer></v-spacer>
+          <v-btn text color="primary" @click="modal = false">Cancel</v-btn>
+          <v-btn text color="primary" @click="$refs.dialog.save(date)"
+            >OK</v-btn
+          >
+        </v-date-picker>
+      </v-dialog>
+      <v-select
+        v-model="category"
+        :items="getCategory"
+        label="Category"
+        required
+      ></v-select>
+      <v-text-field
         v-model="value"
-        v-bind:class="{ erorInput: valueError }"
-      />
-    </div>
-    <div class="editButtons">
-      <button @click="validationInput">Update</button>
-      <button @click="closeModal">Close</button>
-    </div>
+        label="Value"
+        :rules="rulesValue"
+        required
+      ></v-text-field>
+
+      <v-row>
+        <v-col :cols="8"
+          ><v-btn
+            @click="sendUpdateData"
+            :ripple="false"
+            color="teal"
+            :disabled="!valid"
+            class="buttonAdd font-weight-lighter"
+            >Edit</v-btn
+          ></v-col
+        >
+        <v-col :cols="3"
+          ><v-btn
+            @click="closeModalWindow"
+            :ripple="false"
+            color="red"
+            dark
+            class="font-weight-lighter"
+            >Close</v-btn
+          ></v-col
+        >
+      </v-row>
+    </v-form>
   </div>
 </template>
 
 <script>
-// понадобиться для загрузки категорий и отправки в store данных
 import { mapGetters, mapMutations } from "vuex";
 export default {
-  // получаем данные из modalWindow
-  props: ["settings"],
   name: "editCosts",
   data() {
     return {
-      // данные для реактивности
+      modal: false,
+      lazy: false,
+      valid: false,
+      index: null,
       date: "",
       category: "",
-      value: "",
-      // данные для ошибки
-      dateError: false,
-      categoryError: false,
-      valueError: false,
+      value: 0,
+      rulesValue: [
+        (value) => {
+          return (
+            (!isNaN(+value) &&
+              !(value < 0) &&
+              !(value == "") &&
+              !(value >= 1000000000)) ||
+            "Enter a positive number less than 1,000,000,000"
+          );
+        },
+      ],
     };
   },
   methods: {
-    //   берем из стора мутацию на обновление данных
-    ...mapMutations(["updateData"]),
-    // метод проверяет заполненность инпутов, если нет то разукрашивает красным
-    validationInput() {
-      if (this.date == "") {
-        this.dateError = true;
-        return;
-      } else {
-        this.dateError = false;
-      }
-      if (this.value == "") {
-        this.valueError = true;
-        return;
-      } else {
-        this.valueError = false;
-      }
-      if (this.category == "") {
-        this.categoryError = true;
-        return;
-      } else {
-        this.categoryError = false;
-      }
-      //   если валидация прошла успешно
-      this.sendDataToStore();
+    closeModalWindow() {
+      this.$emit("closeModal", false);
     },
+    ...mapMutations(["updateCost"]),
     // метод отправляет данные в store
-    sendDataToStore() {
+    sendUpdateData() {
       let object = {
-        index: this.settings.index,
+        index: this.index,
         date: this.date,
-        value: this.value,
+        value: +this.value,
         category: this.category,
       };
-      this.updateData(object);
-      //   закрываем модальное окно через шину событий
-      this.$modal.hide();
-    },
-    // метод получает данные из родителя и записывает их в свои данные
-    updateCompData() {
-      this.date = this.settings.date;
-      this.value = this.settings.value;
-      this.category = this.settings.category;
-    },
-    // кнопка закрытия модального окна
-    closeModal() {
-      this.$modal.hide();
+      this.updateCost(object);
+      this.closeModalWindow();
     },
   },
   computed: {
     ...mapGetters(["categoryGetter"]),
-    // получаем массив категрой затрат для отрисовки
     getCategory() {
       return this.categoryGetter;
     },
   },
-  // обновляем данные при загрузке модального окна
   created() {
-    this.updateCompData();
+    this.$context.EventBus.$on("edit", (value) => {
+      this.index = value.index;
+      this.date = value.date;
+      this.category = value.category;
+      this.value = value.value;
+    });
+  },
+  beforeDestroy() {
+    this.$context.EventBus.$off("edit", (value) => {
+      this.index = value.index;
+      this.date = value.date;
+      this.category = value.category;
+      this.value = value.value;
+    });
   },
 };
 </script>
 
 <style lang="scss" scoped>
-.erorInput {
-  border: 1px solid red;
-}
-.editBody {
-  display: flex;
-  padding: 15px;
-  width: 600px;
-  height: 225px;
-  background-color: white;
-  position: absolute;
-  margin-top: -100px;
-  margin-left: -400px;
-  left: 50%;
-  top: 50%;
-  span {
-    font-size: 30px;
-    font-weight: 700;
-  }
-}
-.editInputs {
-  margin-top: 5px;
-  display: flex;
-  flex-direction: column;
-  width: 355px;
-  font-size: 20px;
-}
-.editButtons {
-  height: 100%;
-  width: 208px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  justify-content: flex-end;
-  button {
-    margin-top: 5px;
-    width: 150px;
-    height: 30px;
-    font-size: 12px;
-    background: #25a79a;
-    border: 0px;
-    color: white;
-  }
+::v-deep .buttonAdd {
+  color: white !important;
 }
 </style>

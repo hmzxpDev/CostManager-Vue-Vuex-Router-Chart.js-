@@ -1,30 +1,67 @@
 <template>
-  <div class="modal">
-    <div class="modal-guts form">
-      <span> Добавление нового расхода:</span>
-      <input class="inputDate" type="date" placeholder="Date" v-model="date" />
-      <select size="1" v-model="category">
-        <option value="" default disabled selected>Select your category</option>
-        <option v-for="item in getCategory" :key="item">
-          {{ item }}
-        </option>
-      </select>
-      <input
-        class="inputValue"
-        type="number"
-        min="0"
-        placeholder="Value"
+  <div class="modal d-flex flex-column pa-4">
+    <span class="font-weight-bold"> Add new cost:</span>
+    <v-form ref="form" v-model="valid" :lazy-validation="lazy">
+      <v-dialog
+        ref="dialog"
+        v-model="modal"
+        :return-value.sync="date"
+        persistent
+        width="290px"
+      >
+        <template v-slot:activator="{ on, attrs }">
+          <v-text-field
+            v-model="date"
+            label="Date"
+            readonly
+            v-bind="attrs"
+            v-on="on"
+          ></v-text-field>
+        </template>
+        <v-date-picker v-model="date" scrollable>
+          <v-spacer></v-spacer>
+          <v-btn text color="primary" @click="modal = false">Cancel</v-btn>
+          <v-btn text color="primary" @click="$refs.dialog.save(date)"
+            >OK</v-btn
+          >
+        </v-date-picker>
+      </v-dialog>
+      <v-select
+        v-model="category"
+        :items="getCategory"
+        label="Category"
+        required
+      ></v-select>
+      <v-text-field
         v-model="value"
-      />
+        label="Value"
+        :rules="rulesValue"
+        required
+      ></v-text-field>
 
-      <div class="error" v-if="errorBefor">{{ error }}</div>
-    </div>
-    <div class="buttonForm">
-      <button class="close-button buttonADD" @click="validation">ADD +</button>
-      <button class="close-button buttonClose" @click="pageRendering">
-        Close
-      </button>
-    </div>
+      <v-row>
+        <v-col :cols="8"
+          ><v-btn
+            @click="sendToStore"
+            :ripple="false"
+            color="teal"
+            :disabled="!valid"
+            class="buttonAdd font-weight-lighter"
+            >ADD <v-icon>mdi-plus</v-icon></v-btn
+          ></v-col
+        >
+        <v-col :cols="3"
+          ><v-btn
+            @click="closeModalWindow"
+            :ripple="false"
+            color="red"
+            dark
+            class="font-weight-lighter"
+            >Close</v-btn
+          ></v-col
+        >
+      </v-row>
+    </v-form>
   </div>
 </template>
 
@@ -33,61 +70,53 @@ import { mapGetters, mapMutations } from "vuex";
 
 export default {
   name: "addingCosts",
+  props: ["displayModal"],
   data: () => ({
+    modal: false,
+    lazy: false,
+    valid: false,
     date: "",
     category: "",
     value: "",
-    error: "Заполните все данные корректно",
-    errorBefor: false,
+    rulesValue: [
+      (value) => {
+        return (
+          (!isNaN(+value) &&
+            !(value < 0) &&
+            !(value == "") &&
+            !(value >= 1000000000)) ||
+          "Enter a positive number less than 1,000,000,000"
+        );
+      },
+    ],
   }),
   methods: {
     ...mapMutations(["createCost"]),
-    // валидация формы
-    validation() {
-      if (this.category == "" || this.value == "" || this.date == "") {
-        this.errorBefor = true;
-      } else {
-        //отправляем данные формы в store
-        this.sendToStore();
-        //очищаем инпуты, меняем кнопки
-        this.pageRendering();
-      }
+    closeModalWindow() {
+      this.$emit("closeModal", false);
+      // this.backToDefaultData();
+      this.urlUpdate();
     },
     sendToStore() {
-      // передаем данные затраты в store
       this.createCost({
         index: this.getData[this.getData.length - 1].index + 1, // что бы индексы все были уникальными
         date: this.date,
         category: this.category,
-        value: this.value,
+        value: +this.value,
       });
+      this.closeModalWindow();
     },
-    // метод меняет состояние отправки форм до начального
-    pageRendering() {
-      // обнуляем  данные форм
-      this.dateComp();
-      this.category = "";
-      this.value = "";
-      // убираем ошибку
-      this.errorBefor = false;
-      this.closeModal();
-    },
-    // метод добавляет текущую дату в значение инпута
-    dateComp() {
+    newDate() {
       let date = new Date();
       let d = ("0" + date.getDate()).slice(-2);
       let m = ("0" + (date.getMonth() + 1)).slice(-2);
       let y = date.getFullYear();
       this.date = `${y}-${m}-${d}`;
     },
-
-    // метод меняет роутинг и скрывает модальное окно
-    closeModal() {
+    urlUpdate() {
       this.$router.push({ name: "dashboard" });
-      this.$modal.hide("");
     },
-    updateCompData() {
-      // автозаполнение формы из url
+    parseDynamicData() {
       this.category = this.$route.query.category ?? "Food";
       this.value = this.$route.query.value ?? 100;
     },
@@ -98,20 +127,15 @@ export default {
     getData() {
       return this.dataGetter;
     },
-    // получаем массив категрой затрат
     getCategory() {
       return this.categoryGetter;
     },
   },
   created() {
-    // для того что бы всегда иметь актуальную дату
-    this.dateComp();
-    // читаем данные из строки запроса
-    this.updateCompData();
+    this.newDate();
+    this.parseDynamicData();
   },
-
-  updated() {
-    // во время обновления в форме данных - будет добавлять их в url
+  beforeUpdate() {
     this.$router
       .push({
         path: "/dashboard/add/payment/",
@@ -119,67 +143,11 @@ export default {
       })
       .catch(() => {}); // для выключения NavigationDublicate
   },
-  beforeDestroy() {
-    // перед уничтожением меняет роут
-    this.$router.push("/").catch(() => {}); // для выключения NavigationDublicate
-  },
 };
 </script>
 
 <style lang="scss" scoped>
-.modal {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-around;
-  position: fixed;
-  left: 38%;
-  top: 30%;
-  margin: auto;
-  width: 400px;
-  padding: 30px;
-  height: 350px;
-  border: 1px solid #000;
-  background: white;
-}
-
-option[default] {
-  display: none;
-}
-button {
-  margin-top: 20px;
-  margin-right: 30px;
-  width: 150px;
-  height: 30px;
-  font-size: 12px;
-  background: #25a79a;
-  border: 0px;
-  color: white;
-}
-.buttonForm {
-  display: flex;
-}
-.form {
-  display: flex;
-  flex-direction: column;
-  input,
-  select {
-    margin-top: 10px;
-    height: 30px;
-    width: 200px;
-    border: 1px solid rgb(194, 194, 194);
-  }
-  span {
-    font-size: 28px;
-    margin-bottom: 20px;
-  }
-  div {
-    display: flex;
-  }
-}
-.error {
-  color: red;
-  margin-top: 30px;
-  margin-bottom: 30px;
-  font-size: 30px;
+::v-deep .buttonAdd {
+  color: white !important;
 }
 </style>

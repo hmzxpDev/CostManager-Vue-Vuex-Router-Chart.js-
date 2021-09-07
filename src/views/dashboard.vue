@@ -1,48 +1,70 @@
 <template>
-  <div class="leftSide">
+  <v-container>
     <header>
-      <span class="Headding">My personal cost</span>
+      <div class="text-h5 text-sm-h3 mb-8">My personal costs</div>
     </header>
-    <main>
-      <button @click="openModal" class="open-button">ADD NEW COST +</button>
-      <paymentList />
-      <paginate />
-      <modalWindow />
-    </main>
-  </div>
+    <v-row>
+      <v-col>
+        <main>
+          <v-dialog v-model="dialog" max-width="400px" :persistent="true">
+            <template v-slot:activator="{ on }">
+              <v-btn
+                :ripple="false"
+                v-on="on"
+                color="teal"
+                dark
+                @click="openModal"
+                class="mb-4 font-weight-lighter"
+                >ADD NEW COST <v-icon>mdi-plus</v-icon></v-btn
+              ></template
+            >
+            <v-card>
+              <AddingCosts @closeModal="closeModal"></AddingCosts>
+            </v-card>
+          </v-dialog>
+
+          <PaymentList />
+          <Paginate class="mt-4" /></main
+      ></v-col>
+      <v-col class="mt-14"> <Chart></Chart></v-col
+    ></v-row>
+  </v-container>
 </template>
 
 <script>
-import paymentList from "../components/paymentList.vue";
-import paginate from "../components/paginate.vue";
+import PaymentList from "../components/paymentList.vue";
+import Paginate from "../components/paginate.vue";
+import AddingCosts from "../components/modalWindow/addingCosts.vue";
 import { mapActions } from "vuex";
-import modalWindow from "../components/ModalWindow.vue";
+import Chart from "../components/chartComp.vue";
 
 export default {
   name: "dashboard",
   components: {
-    paymentList,
-    paginate,
-    modalWindow,
+    PaymentList,
+    Paginate,
+    AddingCosts,
+    Chart,
   },
   data() {
     return {
       page: "",
       modalName: "",
+      dialog: false,
     };
   },
   methods: {
     // метод загружающий данные с гита в store
     ...mapActions(["fetchData"]),
-    // открывает модальное окно добавления расходов
+    closeModal(value) {
+      this.dialog = value;
+    },
     openModal() {
       this.$router.push({ path: "/dashboard/add/payment/" }).catch(() => {}); // для выключения NavigationDublicate
-      this.$modal.show("addingCosts");
     },
-    // обновляю настройки роутинга
     routing() {
       if (this.$route.matched[0].path === "/dashboard/add/payment*") {
-        this.$modal.show("addingCosts");
+        this.dialog = true;
       }
     },
   },
@@ -57,15 +79,5 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped>
-button {
-  margin-top: 20px;
-  margin-right: 30px;
-  width: 150px;
-  height: 30px;
-  font-size: 12px;
-  background: #25a79a;
-  border: 0px;
-  color: white;
-}
+<style lang="scss">
 </style>
